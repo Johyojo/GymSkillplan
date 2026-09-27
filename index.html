@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<link rel="manifest" href="manifest.json">
+<title>SkillGym</title>
+<style>
+:root{--bg:#0d0f12;--card:#171a20;--card2:#20242c;--text:#f5f7fa;--muted:#9aa3af;--accent:#67e8a5;--accent2:#8ab4ff;--danger:#ff6b6b;--border:#2b303a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+.app{max-width:560px;margin:auto;padding:16px 14px 90px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+h1{font-size:27px;margin:0}.sub{color:var(--muted);font-size:13px}.icon{background:var(--card);border:1px solid var(--border);color:white;border-radius:12px;padding:9px 11px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 16px}.tab{border:1px solid var(--border);background:var(--card);color:var(--muted);padding:12px;border-radius:14px;font-weight:700}.tab.active{background:var(--accent);color:#08120d;border-color:var(--accent)}
+.daytitle{display:flex;justify-content:space-between;align-items:end;margin:8px 2px 12px}.daytitle h2{margin:0;font-size:22px}.daytitle span{color:var(--muted);font-size:13px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:15px;margin:10px 0}.head{display:flex;justify-content:space-between;gap:10px}.name{font-weight:750;font-size:17px}.meta{color:var(--muted);font-size:13px;margin-top:3px}
+.progress{height:6px;background:#2a2e36;border-radius:9px;overflow:hidden;margin:12px 0}.bar{height:100%;background:var(--accent);width:0}
+.level{display:flex;justify-content:space-between;align-items:center;background:var(--card2);border-radius:12px;padding:11px;margin-top:8px}.level small{color:var(--muted)}.level strong{display:block}.next{color:var(--accent);font-size:12px;font-weight:700}
+.controls{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;margin-top:10px}.controls button,.done{border:0;border-radius:12px;padding:11px;background:#2a303a;color:white;font-size:18px}.controls input{width:100%;background:#101318;border:1px solid var(--border);color:white;border-radius:10px;padding:10px;text-align:center;font-size:16px}
+.done{width:100%;margin-top:9px;background:var(--accent);color:#07130d;font-size:14px;font-weight:800}.done.off{background:#2a303a;color:var(--muted)}
+.note{color:var(--muted);font-size:12px;margin-top:8px}.section{margin-top:22px}.section h3{font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:var(--card);border:1px solid var(--border);padding:14px;border-radius:16px}.stat b{font-size:24px}.stat span{display:block;color:var(--muted);font-size:12px}
+.skillrow{background:var(--card);border:1px solid var(--border);padding:14px;border-radius:16px;margin:8px 0}.skillrow .line{display:flex;justify-content:space-between}.pill{font-size:11px;padding:4px 8px;border-radius:99px;background:#26352e;color:var(--accent)}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:end;justify-content:center}.modal.show{display:flex}.sheet{background:var(--card);border:1px solid var(--border);width:min(560px,100%);border-radius:22px 22px 0 0;padding:20px;max-height:85vh;overflow:auto}.sheet button{width:100%;margin-top:9px}.danger{background:#3a2024!important;color:#ff9da4!important}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div><h1>SkillGym</h1><div class="sub">Gym + Calisthenics Tracker</div></div><button class="icon" onclick="openSettings()">⚙</button></header>
+<nav class="tabs">
+<button class="tab active" id="tabA" onclick="showDay('A')">A · Pull</button>
+<button class="tab" id="tabB" onclick="showDay('B')">B · Push</button>
+<button class="tab" id="tabC" onclick="showDay('C')">C · Athletic</button>
+</nav>
+<main id="main"></main>
+<section class="section"><h3>Gesamtfortschritt</h3><div class="statgrid" id="stats"></div></section>
+</div>
+<div class="modal" id="modal"><div class="sheet"><h2>Einstellungen</h2><p class="sub">Alles wird automatisch auf diesem Gerät gespeichert.</p><button class="done" onclick="exportData()">Daten exportieren</button><button class="done" onclick="importData()">Daten importieren</button><button class="done danger" onclick="resetData()">Alles zurücksetzen</button><button class="icon" onclick="closeSettings()">Schließen</button></div></div>
+<script>
+const data={
+A:{title:"Pull · Front Lever · Muscle-Up",items:[
+["Front Lever Hold","Skill","3 × 10–20 s",["Tuck","Advanced Tuck","One Leg","Straddle","Full"]],
+["Front Lever Raises","Skill","3 × 5–8",["Tuck","Advanced Tuck","One Leg","Straddle","Full"]],
+["Explosive Pull-Ups","Strength","3 × 3–5",["Brusthöhe","untere Brust","Bauchhöhe","Hüfthöhe","maximal explosiv"]],
+["Muscle-Up","Skill","3–5 × 1–3",["Band","1 sauber","3 sauber","5 sauber","Weighted"]],
+["Weighted Pull-Ups","Strength","4 × 4–6",["Basis","+5 kg","+10 kg","+15 kg","+20 kg+"]],
+["Rows","Strength","3 × 8–12",["Basis","+5 %","+10 %","+15 %","+20 %"]],
+["Curls","Accessory","2–3 × 8–12",["Basis","+5 %","+10 %","+15 %","+20 %"]],
+["Hanging Leg Raise","Core","3 × 8–15",["Knee Raise","Leg Raise","Toes-to-Bar","Strict TTB","Weighted"]]]},
+B:{title:"Push · Handstand · Planche",items:[
+["Handstand","Skill","15–20 min",["Wall Hold","Toe/Heel Pulls","Freestanding Kick-up","10 s frei","30 s frei"]],
+["HSPU","Skill","4 × 4–8",["Pike Push-up","Elevated Pike","Wall Negatives","Wall HSPU","Freestanding HSPU"]],
+["Shoulder Press","Strength","3 × 5–8",["Basis","+5 %","+10 %","+15 %","+20 %"]],
+["Chest Press","Strength","3 × 6–10",["Basis","+5 %","+10 %","+15 %","+20 %"]],
+["Dips","Strength","3 × 6–10",["Basis","+5 kg","+10 kg","+15 kg","+20 kg+"]],
+["Planche","Skill","3 × 10–20 s",["Planche Lean","Tuck","Advanced Tuck","Straddle","Full"]],
+["L-Sit","Skill","3 × 10–20 s",["Tuck","One Leg","Both Legs","20 s","Weighted"]]]},
+C:{title:"Athletic · Flag · Legs",items:[
+["Human Flag","Skill","3–5 Versuche",["Vertical Flag","Tuck Flag","One Leg","Straddle","Full Flag"]],
+["Front Lever","Skill","3 × 10–15 s",["Tuck","Advanced Tuck","One Leg","Straddle","Full"]],
+["Pull-Ups","Strength","3 × 6–10",["Basis","+5 kg","+10 kg","+15 kg","+20 kg+"]],
+["Bulgarian Split Squat","Legs","3 × 6–10",["Basis","+5 %","+10 %","+15 %","+20 %"]],
+["Leg Curl","Legs","3 × 8–12",["Basis","+5 %","+10 %","+15 %","+20 %"]],
+["Calf Raises","Legs","2–3 × 10–15",["Basis","+5 %","+10 %","+15 %","+20 %"]],
+["Toes-to-Bar","Core","3 × 5–12",["Knee Raise","Leg Raise","Toes-to-Bar","Strict TTB","Weighted"]]]}
+};
+let state=JSON.parse(localStorage.getItem("skillgym")||"{}"), day="A";
+function key(d,i){return d+"_"+i}
+function get(i,d=day){let k=key(d,i);return state[k]||{level:0,done:false,weight:"",reps:""}}
+function save(){localStorage.setItem("skillgym",JSON.stringify(state));render()}
+function showDay(d){day=d;document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.getElementById("tab"+d).classList.add("active");render()}
+function change(i,delta){let x=get(i);x.level=Math.max(0,Math.min(data[day].items[i][3].length-1,x.level+delta));x.done=false;state[key(day,i)]=x;save()}
+function toggle(i){let x=get(i);x.done=!x.done;state[key(day,i)]=x;save()}
+function input(i,field,val){let x=get(i);x[field]=val;state[key(day,i)]=x;localStorage.setItem("skillgym",JSON.stringify(state))}
+function render(){
+let d=data[day], h=`<div class="daytitle"><div><h2>${d.title}</h2><span>Tippe dich einfach durch dein aktuelles Level.</span></div><span>${d.items.length} Übungen</span></div>`;
+d.items.forEach((it,i)=>{let x=get(i), levels=it[3], pct=(x.level/(levels.length-1))*100;
+h+=`<article class="card"><div class="head"><div><div class="name">${i+1}. ${it[0]}</div><div class="meta">${it[1]} · ${it[2]}</div></div><div class="next">${x.done?"✓ ERLEDIGT":"AKTUELL"}</div></div>
+<div class="progress"><div class="bar" style="width:${pct}%"></div></div>
+<div class="level"><div><small>Level ${x.level+1} / ${levels.length}</small><strong>${levels[x.level]}</strong></div><div style="text-align:right"><small>Nächstes</small><br><span class="next">${levels[Math.min(x.level+1,levels.length-1)]}</span></div></div>
+<div class="controls"><button onclick="change(${i},-1)">−</button><input aria-label="Gewicht oder Notiz" value="${x.weight}" placeholder="kg / Zeit" onchange="input(${i},'weight',this.value)"><button onclick="change(${i},1)">+</button></div>
+<button class="done ${x.done?"":"off"}" onclick="toggle(${i})">${x.done?"✓ Heute erledigt":"Als erledigt markieren"}</button></article>`});
+document.getElementById("main").innerHTML=h;stats();
+}
+function stats(){let total=0,done=0,levels=0;Object.values(data).forEach(d=>d.items.forEach((_,i)=>{total++;let x=get(i,Object.keys(data).find(k=>data[k].items[i]===d.items[i]));if(x.done)done++;levels+=x.level}));document.getElementById("stats").innerHTML=`<div class="stat"><b>${done}</b><span>Übungen heute abgehakt</span></div><div class="stat"><b>${levels}</b><span>Level-Fortschritte</span></div>`}
+function openSettings(){document.getElementById("modal").classList.add("show")}function closeSettings(){document.getElementById("modal").classList.remove("show")}
+function exportData(){let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="skillgym-backup.json";a.click()}
+function importData(){let inp=document.createElement("input");inp.type="file";inp.accept=".json";inp.onchange=e=>{let r=new FileReader();r.onload=()=>{try{state=JSON.parse(r.result);save();closeSettings()}catch{alert("Datei konnte nicht gelesen werden.")}};r.readAsText(e.target.files[0])};inp.click()}
+function resetData(){if(confirm("Wirklich alle Fortschritte löschen?")){state={};save();closeSettings()}}
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+render();
+</script>
+</body>
+</html>

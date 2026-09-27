@@ -1,0 +1,10 @@
+{
+  "name": "SkillGym",
+  "short_name": "SkillGym",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d0f12",
+  "theme_color": "#111318",
+  "lang": "de",
+  "icons": []
+}
